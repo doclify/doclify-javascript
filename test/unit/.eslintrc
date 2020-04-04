@@ -1,0 +1,10 @@
+{
+  "env": {
+    "jasmine": true,
+    "node": true,
+    "commonjs": true
+  },
+  "plugins": [
+    "jasmine"
+  ]
+}
