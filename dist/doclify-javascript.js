@@ -1,5 +1,5 @@
 /*!
-  * @doclify/javascript v2.0.3
+  * @doclify/javascript v2.0.4
   * (c) 2020 Doclify
   * @license MIT
   */
@@ -466,11 +466,11 @@
     var cached = this.cache.get(key);
 
     if (cached instanceof Promise) {
-      return cached.then(function (res) { return res.data; })
+      return cached.then(function (res) { return JSON.parse(JSON.stringify(res.data)); })
     } else if (cached instanceof Error) {
       return Promise.reject(cached)
     } else if (typeof cached !== 'undefined') {
-      return Promise.resolve(cached)
+      return Promise.resolve(JSON.parse(JSON.stringify(cached)))
     }
 
     options.headers = options.headers || {};
@@ -490,7 +490,8 @@
           size: size
         });
 
-        return res.data
+        // return copy of data
+        return JSON.parse(JSON.stringify(res.data))
       }).catch(function (err) {
         this$1.cache.set(key, err);
 
