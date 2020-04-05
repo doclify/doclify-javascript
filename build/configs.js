@@ -55,7 +55,7 @@ function genConfig (opts) {
       input: resolve('src/index.js'),
       plugins: [
         autoExternal({
-          dependencies: false
+          dependencies: true
         }),
         flow(),
         node(),
