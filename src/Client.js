@@ -85,6 +85,9 @@ export default class Client {
       return Promise.resolve(cached)
     }
 
+    options.headers = options.headers || {}
+    options.headers['x-cache'] = '1'
+
     const request = this.request(endpoint, options, true)
 
     this.cache.set(key, request, {
