@@ -17,14 +17,12 @@
 
 Install the package using [npm](https://www.npmjs.com) or [Yarn](https://yarnpkg.com/):
 ```sh
-npm install @doclify/javascript axios --production
+npm install @doclify/javascript --production
 
 # or with yarn
 
-yarn add @doclify/javascript axios
+yarn add @doclify/javascript
 ```
-
-> NOTE: `axios` library is required to use SDK
 ---
 
 ## License
