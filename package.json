@@ -1,6 +1,6 @@
 {
 	"name": "@doclify/javascript",
-	"version": "2.0.1",
+	"version": "2.0.2",
 	"description": "Official JavaScript SDK for Doclify",
 	"main": "dist/doclify-javascript.common.js",
 	"module": "dist/doclify-javascript.esm.js",
@@ -12,8 +12,8 @@
 		"url": "https://github.com/doclify/doclify-javascript.git"
 	},
 	"publishConfig": {
-    "access": "public"
-  },
+		"access": "public"
+	},
 	"files": [
 		"src/*",
 		"dist/*"
