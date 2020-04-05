@@ -1,5 +1,5 @@
 /*!
-  * @doclify/javascript v2.0.2
+  * @doclify/javascript v2.0.3
   * (c) 2020 Doclify
   * @license MIT
   */
@@ -448,6 +448,9 @@ class Client {
     } else if (typeof cached !== 'undefined') {
       return Promise.resolve(cached)
     }
+
+    options.headers = options.headers || {};
+    options.headers['x-cache'] = '1';
 
     const request = this.request(endpoint, options, true);
 
