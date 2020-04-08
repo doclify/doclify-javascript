@@ -18,11 +18,13 @@ export default class Client {
     this.config = Object.assign({
       repository: null,
       key: null,
-      cache: false
+      cache: false,
+      timeout: 10000
     }, options)
 
     this.http = axios.create({
       baseURL: this.baseUrl,
+      timeout: this.config.timeout,
       headers: {
         'x-api-key': this.config.key
       }
