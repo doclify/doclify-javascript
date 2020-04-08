@@ -3,6 +3,8 @@ import Cache from './Cache'
 import Documents from './Documents'
 import APIError from './Error'
 
+import { cloneObject } from './utils'
+
 export default class Client {
   constructor (options) {
     if (!options.repository && !options.url) {
@@ -78,11 +80,12 @@ export default class Client {
     const cached = this.cache.get(key)
 
     if (cached instanceof Promise) {
-      return cached.then(res => JSON.parse(JSON.stringify(res.data)))
+      // the same request is being processed, so we wait for completion
+      return cached.then(res => cloneObject(res.data))
     } else if (cached instanceof Error) {
       return Promise.reject(cached)
     } else if (typeof cached !== 'undefined') {
-      return Promise.resolve(JSON.parse(JSON.stringify(cached)))
+      return Promise.resolve(cloneObject(cached))
     }
 
     options.headers = options.headers || {}
@@ -103,7 +106,7 @@ export default class Client {
         })
 
         // return copy of data
-        return JSON.parse(JSON.stringify(res.data))
+        return cloneObject(res.data)
       }).catch(err => {
         this.cache.set(key, err)
 
