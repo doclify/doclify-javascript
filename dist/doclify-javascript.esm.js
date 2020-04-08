@@ -1,5 +1,5 @@
 /*!
-  * @doclify/javascript v2.0.5
+  * @doclify/javascript v2.0.6
   * (c) 2020 Doclify
   * @license MIT
   */
@@ -393,11 +393,13 @@ var Client = function Client (options) {
   this.config = Object.assign({
     repository: null,
     key: null,
-    cache: false
+    cache: false,
+    timeout: 10000
   }, options);
 
   this.http = axios.create({
     baseURL: this.baseUrl,
+    timeout: this.config.timeout,
     headers: {
       'x-api-key': this.config.key
     }
