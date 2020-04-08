@@ -1,5 +1,5 @@
 /*!
-  * @doclify/javascript v2.0.4
+  * @doclify/javascript v2.0.5
   * (c) 2020 Doclify
   * @license MIT
   */
@@ -377,6 +377,10 @@ var APIError = /*@__PURE__*/(function (Error) {
   return APIError;
 }(Error));
 
+function cloneObject(obj) {
+  return JSON.parse(JSON.stringify(obj))
+}
+
 var Client = function Client (options) {
   if (!options.repository && !options.url) {
     throw new TypeError('Repository or URL option is required')
@@ -460,11 +464,12 @@ Client.prototype.cachedRequest = function cachedRequest (endpoint, options) {
   var cached = this.cache.get(key);
 
   if (cached instanceof Promise) {
-    return cached.then(function (res) { return JSON.parse(JSON.stringify(res.data)); })
+    // the same request is being processed, so we wait for completion
+    return cached.then(function (res) { return cloneObject(res.data); })
   } else if (cached instanceof Error) {
     return Promise.reject(cached)
   } else if (typeof cached !== 'undefined') {
-    return Promise.resolve(JSON.parse(JSON.stringify(cached)))
+    return Promise.resolve(cloneObject(cached))
   }
 
   options.headers = options.headers || {};
@@ -485,7 +490,7 @@ Client.prototype.cachedRequest = function cachedRequest (endpoint, options) {
       });
 
       // return copy of data
-      return JSON.parse(JSON.stringify(res.data))
+      return cloneObject(res.data)
     }).catch(function (err) {
       this$1.cache.set(key, err);
 

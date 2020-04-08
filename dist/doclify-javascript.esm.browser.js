@@ -1,5 +1,5 @@
 /*!
-  * @doclify/javascript v2.0.4
+  * @doclify/javascript v2.0.5
   * (c) 2020 Doclify
   * @license MIT
   */
@@ -367,6 +367,10 @@ class APIError extends Error {
   }
 }
 
+function cloneObject(obj) {
+  return JSON.parse(JSON.stringify(obj))
+}
+
 class Client {
   constructor (options) {
     if (!options.repository && !options.url) {
@@ -442,11 +446,12 @@ class Client {
     const cached = this.cache.get(key);
 
     if (cached instanceof Promise) {
-      return cached.then(res => JSON.parse(JSON.stringify(res.data)))
+      // the same request is being processed, so we wait for completion
+      return cached.then(res => cloneObject(res.data))
     } else if (cached instanceof Error) {
       return Promise.reject(cached)
     } else if (typeof cached !== 'undefined') {
-      return Promise.resolve(JSON.parse(JSON.stringify(cached)))
+      return Promise.resolve(cloneObject(cached))
     }
 
     options.headers = options.headers || {};
@@ -467,7 +472,7 @@ class Client {
         });
 
         // return copy of data
-        return JSON.parse(JSON.stringify(res.data))
+        return cloneObject(res.data)
       }).catch(err => {
         this.cache.set(key, err);
 
