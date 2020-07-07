@@ -83,6 +83,8 @@ export default class Documents {
     }
 
     query.call(this, this)
+
+    return this
   }
 
   // deprecated
