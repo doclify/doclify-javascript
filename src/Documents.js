@@ -77,6 +77,14 @@ export default class Documents {
     return this.where(field, 'match', value)
   }
 
+  query (query) {
+    if (typeof query !== 'function') {
+      throw new TypeError('Query parameter must be function.')
+    }
+
+    query.call(this, this)
+  }
+
   // deprecated
   with (field) {
     return this.include(field)
