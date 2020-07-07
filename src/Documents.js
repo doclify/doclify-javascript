@@ -93,14 +93,20 @@ export default class Documents {
   }
 
   include(...fields) {
-    fields = fields.length && Array.isArray(fields[0]) ? fields[0] : fields
+    if (fields.length && Array.isArray(fields[0])) {
+      fields = fields[0]
+    }
+
     this.includeQuery.push(...fields)
 
     return this
   }
 
   select (...fields) {
-    fields = fields.length && Array.isArray(fields[0]) ? fields[0] : fields
+    if (fields.length && Array.isArray(fields[0])) {
+      fields = fields[0]
+    }
+    
     this.selectQuery.push(...fields)
 
     return this
