@@ -6,8 +6,9 @@ export default class Documents {
     this.perPage = undefined
     this.page = undefined
     this.q = []
-    this.withLazy = []
-    this.order = []
+    this.includeQuery = []
+    this.selectQuery = []
+    this.orderQuery = []
   }
 
   where (field, operator, value) {
@@ -76,51 +77,64 @@ export default class Documents {
     return this.where(field, 'match', value)
   }
 
-  with (lazyField) {
-    this.withLazy.push(lazyField)
+  // deprecated
+  with (field) {
+    return this.include(field)
+  }
+
+  include(field) {
+    this.includeQuery.push(field)
+
+    return this
+  }
+
+  select (field) {
+    this.selectQuery.push(field)
 
     return this
   }
 
   orderBy (field, asc) {
-    this.order.push([field, asc || 'asc'])
+    this.orderQuery.push([field, asc || 'asc'])
 
     return this
   }
 
+  getParams(params = {}) {
+    return Object.assign({
+      q: JSON.stringify(this.q),
+      include: this.includeQuery.length ? JSON.stringify(this.includeQuery) : undefined,
+      order: this.orderQuery.length ? JSON.stringify(this.orderQuery) : undefined,
+      select: this.selectQuery.length ? JSON.stringify(this.selectQuery) : undefined,
+      lang: this.lang
+    }, params)
+  }
+
   fetch (limit) {
     return this.client.cachedRequest('documents/search', {
-      params: {
-        q: JSON.stringify(this.q),
-        with: this.withLazy.length ? JSON.stringify(this.withLazy) : undefined,
-        order: this.order.length ? JSON.stringify(this.order) : undefined,
-        limit,
-        lang: this.lang
-      }
+      params: this.getParams({
+        limit
+      })
     })
   }
 
+  // deprecated
   paginated (page, perPage) {
+    return this.paginate(page, perPage)
+  }
+
+  paginate (page, perPage) {
     return this.client.cachedRequest('documents/paginated', {
-      params: {
-        q: JSON.stringify(this.q),
-        with: this.withLazy.length ? JSON.stringify(this.withLazy) : undefined,
-        order: this.order.length ? JSON.stringify(this.order) : undefined,
+      params: this.getParams({
         perPage,
         page,
-        lang: this.lang
-      }
+      })
     })
   }
 
   first () {
     return this.client.cachedRequest('documents/single', {
-      params: {
-        q: JSON.stringify(this.q),
-        with: this.withLazy.length ? JSON.stringify(this.withLazy) : undefined,
-        order: this.order.length ? JSON.stringify(this.order) : undefined,
-        lang: this.lang
-      }
+      params: this.getParams()
     })
   }
 }
