@@ -1,5 +1,5 @@
 /*!
-  * @doclify/javascript v2.0.8
+  * @doclify/javascript v2.0.9
   * (c) 2020 Doclify
   * @license MIT
   */
@@ -272,6 +272,8 @@ class Documents {
     }
 
     query.call(this, this);
+
+    return this
   }
 
   // deprecated

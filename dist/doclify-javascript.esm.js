@@ -1,5 +1,5 @@
 /*!
-  * @doclify/javascript v2.0.8
+  * @doclify/javascript v2.0.9
   * (c) 2020 Doclify
   * @license MIT
   */
@@ -273,6 +273,8 @@ Documents.prototype.query = function query (query$1) {
   }
 
   query$1.call(this, this);
+
+  return this
 };
 
 // deprecated
