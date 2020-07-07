@@ -202,8 +202,9 @@
     this.perPage = undefined;
     this.page = undefined;
     this.q = [];
-    this.withLazy = [];
-    this.order = [];
+    this.includeQuery = [];
+    this.selectQuery = [];
+    this.orderQuery = [];
   };
 
   Documents.prototype.where = function where (field, operator, value) {
@@ -272,51 +273,66 @@
     return this.where(field, 'match', value)
   };
 
-  Documents.prototype.with = function with$1 (lazyField) {
-    this.withLazy.push(lazyField);
+  // deprecated
+  Documents.prototype.with = function with$1 (field) {
+    return this.include(field)
+  };
+
+  Documents.prototype.include = function include (field) {
+    this.includeQuery.push(field);
+
+    return this
+  };
+
+  Documents.prototype.select = function select (field) {
+    this.selectQuery.push(field);
 
     return this
   };
 
   Documents.prototype.orderBy = function orderBy (field, asc) {
-    this.order.push([field, asc || 'asc']);
+    this.orderQuery.push([field, asc || 'asc']);
 
     return this
   };
 
+  Documents.prototype.getParams = function getParams (params) {
+      if ( params === void 0 ) params = {};
+
+    return Object.assign({
+      q: JSON.stringify(this.q),
+      include: this.includeQuery.length ? JSON.stringify(this.includeQuery) : undefined,
+      order: this.orderQuery.length ? JSON.stringify(this.orderQuery) : undefined,
+      select: this.selectQuery.length ? JSON.stringify(this.selectQuery) : undefined,
+      lang: this.lang
+    }, params)
+  };
+
   Documents.prototype.fetch = function fetch (limit) {
     return this.client.cachedRequest('documents/search', {
-      params: {
-        q: JSON.stringify(this.q),
-        with: this.withLazy.length ? JSON.stringify(this.withLazy) : undefined,
-        order: this.order.length ? JSON.stringify(this.order) : undefined,
-        limit: limit,
-        lang: this.lang
-      }
+      params: this.getParams({
+        limit: limit
+      })
     })
   };
 
+  // deprecated
   Documents.prototype.paginated = function paginated (page, perPage) {
+    return this.paginate(page, perPage)
+  };
+
+  Documents.prototype.paginate = function paginate (page, perPage) {
     return this.client.cachedRequest('documents/paginated', {
-      params: {
-        q: JSON.stringify(this.q),
-        with: this.withLazy.length ? JSON.stringify(this.withLazy) : undefined,
-        order: this.order.length ? JSON.stringify(this.order) : undefined,
+      params: this.getParams({
         perPage: perPage,
         page: page,
-        lang: this.lang
-      }
+      })
     })
   };
 
   Documents.prototype.first = function first () {
     return this.client.cachedRequest('documents/single', {
-      params: {
-        q: JSON.stringify(this.q),
-        with: this.withLazy.length ? JSON.stringify(this.withLazy) : undefined,
-        order: this.order.length ? JSON.stringify(this.order) : undefined,
-        lang: this.lang
-      }
+      params: this.getParams()
     })
   };
 
