@@ -1,5 +1,5 @@
 /*!
-  * @doclify/javascript v2.0.7
+  * @doclify/javascript v2.0.8
   * (c) 2020 Doclify
   * @license MIT
   */
@@ -264,6 +264,14 @@ class Documents {
 
   match (field, value) {
     return this.where(field, 'match', value)
+  }
+
+  query (query) {
+    if (typeof query !== 'function') {
+      throw new TypeError('Query parameter must be function.')
+    }
+
+    query.call(this, this);
   }
 
   // deprecated
