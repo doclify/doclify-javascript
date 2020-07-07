@@ -1,5 +1,5 @@
 /*!
-  * @doclify/javascript v2.0.9
+  * @doclify/javascript v2.0.10
   * (c) 2020 Doclify
   * @license MIT
   */
@@ -281,14 +281,16 @@ class Documents {
     return this.include(field)
   }
 
-  include(field) {
-    this.includeQuery.push(field);
+  include(...fields) {
+    fields = fields.length && Array.isArray(fields[0]) ? fields[0] : fields;
+    this.includeQuery.push(...fields);
 
     return this
   }
 
-  select (field) {
-    this.selectQuery.push(field);
+  select (...fields) {
+    fields = fields.length && Array.isArray(fields[0]) ? fields[0] : fields;
+    this.selectQuery.push(...fields);
 
     return this
   }

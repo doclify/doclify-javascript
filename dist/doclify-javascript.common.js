@@ -1,5 +1,5 @@
 /*!
-  * @doclify/javascript v2.0.9
+  * @doclify/javascript v2.0.10
   * (c) 2020 Doclify
   * @license MIT
   */
@@ -286,14 +286,24 @@ Documents.prototype.with = function with$1 (field) {
   return this.include(field)
 };
 
-Documents.prototype.include = function include (field) {
-  this.includeQuery.push(field);
+Documents.prototype.include = function include () {
+    var ref;
+
+    var fields = [], len = arguments.length;
+    while ( len-- ) fields[ len ] = arguments[ len ];
+  fields = fields.length && Array.isArray(fields[0]) ? fields[0] : fields
+  (ref = this.includeQuery).push.apply(ref, fields);
 
   return this
 };
 
-Documents.prototype.select = function select (field) {
-  this.selectQuery.push(field);
+Documents.prototype.select = function select () {
+    var ref;
+
+    var fields = [], len = arguments.length;
+    while ( len-- ) fields[ len ] = arguments[ len ];
+  fields = fields.length && Array.isArray(fields[0]) ? fields[0] : fields
+  (ref = this.selectQuery).push.apply(ref, fields);
 
   return this
 };
