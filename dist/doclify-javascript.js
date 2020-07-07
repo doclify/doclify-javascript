@@ -1,5 +1,5 @@
 /*!
-  * @doclify/javascript v2.0.10
+  * @doclify/javascript v2.0.11
   * (c) 2020 Doclify
   * @license MIT
   */
@@ -293,7 +293,10 @@
 
       var fields = [], len = arguments.length;
       while ( len-- ) fields[ len ] = arguments[ len ];
-    fields = fields.length && Array.isArray(fields[0]) ? fields[0] : fields
+    if (fields.length && Array.isArray(fields[0])) {
+      fields = fields[0];
+    }
+
     (ref = this.includeQuery).push.apply(ref, fields);
 
     return this
@@ -304,7 +307,10 @@
 
       var fields = [], len = arguments.length;
       while ( len-- ) fields[ len ] = arguments[ len ];
-    fields = fields.length && Array.isArray(fields[0]) ? fields[0] : fields
+    if (fields.length && Array.isArray(fields[0])) {
+      fields = fields[0];
+    }
+      
     (ref = this.selectQuery).push.apply(ref, fields);
 
     return this
