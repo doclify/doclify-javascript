@@ -3,8 +3,6 @@ export default class Documents {
     this.client = client
 
     this.lang = undefined
-    this.perPage = undefined
-    this.page = undefined
     this.q = []
     this.includeQuery = []
     this.selectQuery = []

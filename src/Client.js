@@ -7,27 +7,36 @@ import { cloneObject } from './utils'
 
 export default class Client {
   constructor (options) {
-    if (!options.repository && !options.url) {
-      throw new TypeError('Repository or URL option is required')
+    if (!options.url) {
+      if (!options.repository) {
+        throw new TypeError('Repository or URL option is required.')
+      }
+  
+      if (!options.key && !options.token) {
+        throw new TypeError('API key/token is required.')
+      }
     }
 
-    if (!options.key) {
-      throw new TypeError('API key is required')
-    }
+    options.token = options.token || options.key || null
 
     this.config = Object.assign({
+      url: null,
       repository: null,
-      key: null,
+      token: null,
       cache: false,
       timeout: 10000
     }, options)
 
+    const headers = {}
+
+    if (this.config.token) {
+      headers.Authorization = 'Bearer ' + this.config.token
+    }
+
     this.http = axios.create({
       baseURL: this.baseUrl,
       timeout: this.config.timeout,
-      headers: {
-        'x-api-key': this.config.key
-      }
+      headers
     })
 
     this.http.interceptors.response.use((response) => {
@@ -89,9 +98,6 @@ export default class Client {
     } else if (typeof cached !== 'undefined') {
       return Promise.resolve(cloneObject(cached))
     }
-
-    options.headers = options.headers || {}
-    options.headers['x-cache'] = '1'
 
     const request = this.request(endpoint, options, true)
 
