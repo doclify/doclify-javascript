@@ -1,13 +1,13 @@
 /*!
-  * @doclify/javascript v3.0.1
+  * @doclify/javascript v3.0.2
   * (c) 2020 Doclify
   * @license MIT
   */
 (function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('axios')) :
-  typeof define === 'function' && define.amd ? define(['axios'], factory) :
-  (global = global || self, global.DoclifyJS = factory(global.axios));
-}(this, (function (axios) { 'use strict';
+  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('axios')) :
+  typeof define === 'function' && define.amd ? define(['exports', 'axios'], factory) :
+  (global = global || self, factory(global.DoclifyJS = {}, global.axios));
+}(this, (function (exports, axios) { 'use strict';
 
   axios = axios && Object.prototype.hasOwnProperty.call(axios, 'default') ? axios['default'] : axios;
 
@@ -245,9 +245,213 @@
     return APIError;
   }(Error));
 
+  var matchHtmlRegExp = /["'&<>]/;
+
   function cloneObject(obj) {
     return JSON.parse(JSON.stringify(obj))
   }
+
+  function escapeHtml(string) {
+    var str = '' + string;
+    var match = matchHtmlRegExp.exec(str);
+
+    if (!match) {
+      return str;
+    }
+
+    var escape;
+    var html = '';
+    var index = 0;
+    var lastIndex = 0;
+
+    for (index = match.index; index < str.length; index++) {
+      switch (str.charCodeAt(index)) {
+        case 34: // "
+          escape = '&quot;';
+          break;
+        case 38: // &
+          escape = '&amp;';
+          break;
+        case 39: // '
+          escape = '&#39;';
+          break;
+        case 60: // <
+          escape = '&lt;';
+          break;
+        case 62: // >
+          escape = '&gt;';
+          break;
+        default:
+          continue;
+      }
+
+      if (lastIndex !== index) {
+        html += str.substring(lastIndex, index);
+      }
+
+      lastIndex = index + 1;
+      html += escape;
+    }
+
+    return lastIndex !== index
+      ? html + str.substring(lastIndex, index)
+      : html;
+  }
+
+  var serializers = {
+  	html: {
+  		doc: function doc(ref) {
+  			var content = ref.content;
+
+  			return this.serializeItems(content)
+  		},
+  		paragraph: function paragraph(ref) {
+  			var content = ref.content;
+
+  			return ("<p>" + (this.serializeItems(content)) + "</p>")
+  		},
+  		heading: function heading(ref) {
+  			var attrs = ref.attrs;
+  			var content = ref.content;
+
+  			return ("<h" + (attrs.level) + ">" + (this.serializeItems(content)) + "</h" + (attrs.level) + ">")
+  		},
+  		image: function image(ref) {
+  			var attrs = ref.attrs;
+
+  			return ("<p><img src=\"" + (attrs.url) + "\"></p>")
+  		},
+  		text: function text(ref) {
+  			var text = ref.text;
+  			var marks = ref.marks;
+
+  			if (!marks) {
+  				return escapeHtml(text)
+  			}
+
+  			var html = escapeHtml(text);
+
+  			marks.forEach(function (ref) {
+  				var type = ref.type;
+  				var attrs = ref.attrs;
+
+  				if (type === 'bold') {
+  					html = "<strong>" + html + "</strong>";
+  				} else if (type === 'italic') {
+  					html = "<em>" + html + "</em>";
+  				} else if (type === 'underline') {
+  					html = "<span style=\"text-decoration:underline\">" + html + "</span>";
+  				} else if (type === 'link') {
+  					var target = attrs.target ? (" target=\"" + (attrs.target) + "\" rel=\"noopener\"") : '';
+  					html = "<a href=\"" + (attrs.href) + "\"" + target + ">" + html + "</a>";
+  				}
+  			});
+
+  			return html
+  		},
+  		bullet_list: function bullet_list(ref) {
+  			var content = ref.content;
+
+  			return ("<ul>" + (this.serializeItems(content)) + "</ul>")
+  		},
+  		ordered_list: function ordered_list(ref) {
+  			var content = ref.content;
+
+  			return ("<ol>" + (this.serializeItems(content)) + "</ol>")
+  		},
+  		list_item: function list_item(ref) {
+  			var content = ref.content;
+
+  			return ("<li>" + (this.serializeItems(content)) + "</li>")
+  		},
+  		hard_break: function hard_break() {
+  			return '<br>'
+  		},
+  		table: function table(ref) {
+  			var content = ref.content;
+
+  			return ("<table><tbody>" + (this.serializeItems(content)) + "</tbody></table>")
+  		},
+  		table_row: function table_row(ref) {
+  			var content = ref.content;
+
+  			return ("<tr>" + (this.serializeItems(content)) + "</tr>")
+  		},
+  		table_header: function table_header(props) {
+  			return serializers.html.table_cell.call(this, props, 'th')
+  		},
+  		table_cell: function table_cell(ref, tag) {
+  			var attrs = ref.attrs;
+  			var content = ref.content;
+  			if ( tag === void 0 ) tag = 'td';
+
+  			var attrString = Object.keys(attrs).map(function (attr) {
+  				var value = attrs[attr];
+  				if (!value) {
+  					return
+  				}
+
+  				// colwidth can be array
+  				if (Array.isArray(value)) {
+  					value = value.join(',');
+  				}
+
+  				return (attr + "=\"" + value + "\"")
+  			}).filter(function (item) { return item; }).join(' ');
+  			return ("<" + tag + " " + attrString + ">" + (this.serializeItems(content)) + "</" + tag + ">")
+  		}
+  	}
+  };
+
+  var Serializer = function Serializer(type, serializers) {
+  	this.type = type || 'html';
+  	this.serializers = serializers || {};
+  };
+
+  Serializer.prototype.serializeItems = function serializeItems (items) {
+  		var this$1 = this;
+
+  	return (items || []).map(function (item) { return this$1.serialize(item); }).join('')
+  };
+
+  Serializer.prototype.serialize = function serialize (obj) {
+  	if (!obj) {
+  		return ''
+  	}
+
+  	var serializer = this.serializers[obj.type]; 
+  		
+  	if (!serializer && serializers[this.type]) {
+  		serializer = serializers[this.type][obj.type];
+  	}
+
+  	if (!serializer) {
+  		// eslint-disable-next-line no-console, no-undef
+  		console.warn(("[@doclify/javascript] Invalid structuredText type '" + (obj.type) + "', please try upgrading @doclify/javascript."));
+
+  		return ''
+  	}
+
+  	return serializer.call(this, obj)
+  };
+
+  var defaultSerializer = new Serializer();
+
+  function asHtml(json) {
+  	return defaultSerializer.serialize(json)
+  }
+
+  var structuredText = {
+  	asHtml: asHtml,
+  	Serializer: Serializer
+  };
+
+
+
+  var dom = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    structuredText: structuredText
+  });
 
   var Client = function Client (options) {
     if ( options === void 0 ) options = {};
@@ -294,6 +498,8 @@
     }, function (err) {
       return Promise.reject(err)
     });
+
+    this.dom = dom;
   };
 
   var prototypeAccessors = { baseUrl: { configurable: true } };
@@ -397,6 +603,9 @@
 
   Object.defineProperties( Client.prototype, prototypeAccessors );
 
-  return Client;
+  exports.default = Client;
+  exports.dom = dom;
+
+  Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
