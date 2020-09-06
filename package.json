@@ -1,6 +1,6 @@
 {
 	"name": "@doclify/javascript",
-	"version": "3.0.1",
+	"version": "3.0.2",
 	"description": "Official JavaScript SDK for Doclify",
 	"main": "dist/doclify-javascript.common.js",
 	"module": "dist/doclify-javascript.esm.js",
