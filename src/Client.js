@@ -1,6 +1,7 @@
 import axios from 'axios'
 import Documents from './Documents'
 import APIError from './Error'
+import * as dom from './dom'
 
 import { cloneObject } from './utils'
 
@@ -48,6 +49,8 @@ export default class Client {
     }, function (err) {
       return Promise.reject(err)
     })
+
+    this.dom = dom
   }
 
   get baseUrl () {
