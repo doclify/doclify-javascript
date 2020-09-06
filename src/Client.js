@@ -1,12 +1,11 @@
 import axios from 'axios'
-import Cache from './Cache'
 import Documents from './Documents'
 import APIError from './Error'
 
 import { cloneObject } from './utils'
 
 export default class Client {
-  constructor (options) {
+  constructor (options = {}) {
     if (!options.url) {
       if (!options.repository) {
         throw new TypeError('Repository or URL option is required.')
@@ -19,11 +18,16 @@ export default class Client {
 
     options.token = options.token || options.key || null
 
+    if (options.cache) {
+      this.setCache(options.cache)
+      delete options.cache
+    }
+
     this.config = Object.assign({
       url: null,
       repository: null,
       token: null,
-      cache: false,
+      lang: null,
       timeout: 10000
     }, options)
 
@@ -44,21 +48,37 @@ export default class Client {
     }, function (err) {
       return Promise.reject(err)
     })
-
-    const cacheConfig = typeof this.config.cache === 'object' && this.config.cache ? this.config.cache : {}
-
-    this.cache = new Cache({
-      maxAge: typeof cacheConfig.maxAge === 'number' ? cacheConfig.maxAge : 30,
-      maxSize: cacheConfig.maxSize || 3 * 1024 * 1024,
-      maxLength: cacheConfig.maxLength || 1000
-    })
   }
 
   get baseUrl () {
     return this.config.url || `https://${this.config.repository}.cdn.doclify.io/api/v2`
   }
 
+  setCache(cache) {
+    this.cache = cache
+  }
+
+  setLang(lang) {
+    this.config.lang = lang
+  }
+
+  getCacheKey(endpoint, params) {
+    const paramsArray = []
+
+    Object.keys(params).sort().forEach(key => {
+      paramsArray.push(`${key}=${params[key]}`)
+    })
+
+    return `${endpoint}?${paramsArray.join('&')}`
+  }
+
   request (endpoint, options = {}, returnResponse = false) {
+    options.params = options.params || {}
+    
+    if (this.config.lang && !options.params.lang) {
+      options.params.lang = this.config.lang
+    }
+
     return this.http.request(endpoint, options)
       .then(res => {
         return returnResponse ? res : res.data
@@ -69,7 +89,7 @@ export default class Client {
         const info = {
           url: this.baseUrl + '/' + endpoint,
           code: err.response ? err.response.status : -1,
-          params: options.params || {},
+          params: options.params,
           method: options.method || 'GET',
           error: responseData.error || null,
           data: responseData
@@ -82,36 +102,30 @@ export default class Client {
   }
 
   cachedRequest (endpoint, options = {}) {
-    if (!this.config.cache) {
+    if (!this.cache) {
       return this.request(endpoint, options)
     }
 
-    const key = `${endpoint}:${JSON.stringify(options.params)}`
+    const key = this.getCacheKey(endpoint, options.params || {})
 
-    const cached = this.cache.get(key)
+    const cache = this.cache.get(key)
 
-    if (cached instanceof Promise) {
+    if (cache instanceof Promise) {
       // the same request is being processed, so we wait for completion
-      return cached.then(res => cloneObject(res.data))
-    } else if (cached instanceof Error) {
-      return Promise.reject(cached)
-    } else if (typeof cached !== 'undefined') {
-      return Promise.resolve(cloneObject(cached))
+      return cache.then(res => cloneObject(res.data))
+    } else if (cache instanceof Error) {
+      return Promise.reject(cache)
+    } else if (typeof cache !== 'undefined') {
+      return Promise.resolve(cloneObject(cache))
     }
 
     const request = this.request(endpoint, options, true)
 
-    this.cache.set(key, request, {
-      size: 1
-    })
+    this.cache.set(key, request)
 
     return request
       .then(res => {
-        const size = Number(res.headers['content-length']) || 0
-
-        this.cache.set(key, res.data, {
-          size
-        })
+        this.cache.set(key, res.data)
 
         // return copy of data
         return cloneObject(res.data)

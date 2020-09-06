@@ -2,7 +2,7 @@ export default class Documents {
   constructor (client) {
     this.client = client
 
-    this.lang = undefined
+    this.langCode = client.config.lang
     this.q = []
     this.includeQuery = []
     this.selectQuery = []
@@ -85,6 +85,12 @@ export default class Documents {
     return this
   }
 
+  lang(lang) {
+    this.langCode = lang
+
+    return this
+  }
+
   // deprecated
   with (field) {
     return this.include(field)
@@ -122,7 +128,7 @@ export default class Documents {
       include: this.includeQuery.length ? JSON.stringify(this.includeQuery) : undefined,
       order: this.orderQuery.length ? JSON.stringify(this.orderQuery) : undefined,
       select: this.selectQuery.length ? JSON.stringify(this.selectQuery) : undefined,
-      lang: this.lang
+      lang: this.langCode
     }, params)
   }
 
