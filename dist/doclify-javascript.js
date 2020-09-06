@@ -1,5 +1,5 @@
 /*!
-  * @doclify/javascript v2.0.12
+  * @doclify/javascript v3.0.0
   * (c) 2020 Doclify
   * @license MIT
   */
@@ -11,194 +11,10 @@
 
   axios = axios && Object.prototype.hasOwnProperty.call(axios, 'default') ? axios['default'] : axios;
 
-  var Cache = function Cache (options) {
-    this.config = Object.assign({
-      maxSize: Infinity,
-      maxLength: Infinity,
-      maxAge: 0,
-      getSize: function getSize () {
-        return 1
-      }
-    }, options || {});
-
-    this.entries = new Map();
-    this.size = 0;
-    this.newest = this.oldest = undefined;
-  };
-
-  var prototypeAccessors = { length: { configurable: true } };
-
-  Cache.prototype.reset = function reset () {
-    this.entries.clear();
-    this.size = 0;
-    this.newest = this.oldest = undefined;
-  };
-
-  prototypeAccessors.length.get = function () {
-    return this.entries.size
-  };
-
-  Cache.prototype.has = function has (key) {
-    return this.entries.has(key)
-  };
-
-  Cache.prototype.get = function get (key) {
-    var entry = this.entries.get(key);
-
-    if (!entry) {
-      return
-    }
-
-    if (entry.maxAge && Date.now() - entry.now > entry.maxAge * 1000) {
-      this.delete(entry);
-
-      return
-    }
-
-    return entry.value
-  };
-
-  Cache.prototype.set = function set (key, value, options) {
-      if ( options === void 0 ) options = {};
-
-    var maxAge = options.maxAge || this.config.maxAge;
-
-    if (maxAge && typeof maxAge !== 'number') {
-      throw new TypeError('maxAge must be a number')
-    }
-
-    var size = typeof options.size === 'number' ? options.size : this.config.getSize(value, key);
-
-    if (size > this.config.maxSize) {
-      if (this.has(key)) {
-        this.delete(key);
-      }
-
-      return false
-    }
-
-    var entry = this.entries.get(key);
-
-    if (!entry) {
-      entry = new Entry(key, value, size, maxAge);
-
-      this.entries.set(key, entry);
-
-      if (this.newest) {
-        this.newest.newer = entry;
-        entry.older = this.newest;
-      } else {
-        this.oldest = entry;
-      }
-    } else {
-      this.size -= entry.size;
-      entry.update(value, size, maxAge);
-
-      this.markEntryAsUsed(entry);
-    }
-
-    this.size += size;
-    this.newest = entry;
-
-    this.cleanup();
-
-    return true
-  };
-
-  Cache.prototype.markEntryAsUsed = function markEntryAsUsed (entry) {
-    if (entry === this.newest) {
-      // Already the most recenlty used entry, so no need to update the list
-      return
-    }
-
-    // HEAD--------------TAIL
-    // <.older .newer>
-    //<--- add direction --
-    // ABC<D>E
-    if (entry.newer) {
-      if (entry === this.oldest) {
-        this.oldest = entry.newer;
-      }
-
-      entry.newer.older = entry.older; // C <-- E.
-    }
-    if (entry.older) {
-      entry.older.newer = entry.newer; // C. --> E
-    }
-    entry.newer = undefined; // D --x
-    entry.older = this.newest; // D. --> E
-
-    if (this.newest) {
-      this.newest.newer = entry; // E. <-- D
-    }
-
-    this.newest = entry;
-  };
-
-  Cache.prototype.delete = function delete$1 (keyOrEntry) {
-    var entry = keyOrEntry instanceof Entry ? keyOrEntry : this.entries.get(keyOrEntry);
-
-    if (!entry) {
-      return false
-    }
-
-    this.size -= entry.size;
-    entry.size = 0;
-    entry.newer = entry.older = undefined;
-
-    return this.entries.delete(entry.key)
-  };
-
-  Cache.prototype.cleanup = function cleanup () {
-    while (this.length > this.config.maxLength || this.size > this.config.maxSize) {
-      if (!this.shift()) {
-        break
-      }
-    }
-  };
-
-  Cache.prototype.shift = function shift () {
-    var entry = this.oldest;
-
-    if (!entry) {
-      return false
-    }
-
-    if (this.oldest.newer) {
-      // advance the list
-      this.oldest = this.oldest.newer;
-      this.oldest.older = undefined;
-    } else {
-      // the cache is exhausted
-      this.oldest = undefined;
-      this.newest = undefined;
-    }
-
-    this.delete(entry);
-
-    return true
-  };
-
-  Object.defineProperties( Cache.prototype, prototypeAccessors );
-
-  var Entry = function Entry (key, value, size, maxAge) {
-    this.key = key;
-    this.newer = this.older = null;
-
-    this.update(value, size, maxAge);
-  };
-
-  Entry.prototype.update = function update (value, size, maxAge) {
-    this.value = value;
-    this.size = size;
-    this.maxAge = maxAge;
-    this.now = maxAge ? Date.now() : null;
-  };
-
   var Documents = function Documents (client) {
     this.client = client;
 
-    this.lang = undefined;
+    this.langCode = client.config.lang;
     this.q = [];
     this.includeQuery = [];
     this.selectQuery = [];
@@ -281,6 +97,12 @@
     return this
   };
 
+  Documents.prototype.lang = function lang (lang$1) {
+    this.langCode = lang$1;
+
+    return this
+  };
+
   // deprecated
   Documents.prototype.with = function with$1 (field) {
     return this.include(field)
@@ -328,7 +150,7 @@
       include: this.includeQuery.length ? JSON.stringify(this.includeQuery) : undefined,
       order: this.orderQuery.length ? JSON.stringify(this.orderQuery) : undefined,
       select: this.selectQuery.length ? JSON.stringify(this.selectQuery) : undefined,
-      lang: this.lang
+      lang: this.langCode
     }, params)
   };
 
@@ -428,6 +250,8 @@
   }
 
   var Client = function Client (options) {
+    if ( options === void 0 ) options = {};
+
     if (!options.url) {
       if (!options.repository) {
         throw new TypeError('Repository or URL option is required.')
@@ -440,11 +264,16 @@
 
     options.token = options.token || options.key || null;
 
+    if (options.cache) {
+      this.setCache(options.cache);
+      delete options.cache;
+    }
+
     this.config = Object.assign({
       url: null,
       repository: null,
       token: null,
-      cache: false,
+      lang: null,
       timeout: 10000
     }, options);
 
@@ -465,26 +294,42 @@
     }, function (err) {
       return Promise.reject(err)
     });
-
-    var cacheConfig = typeof this.config.cache === 'object' && this.config.cache ? this.config.cache : {};
-
-    this.cache = new Cache({
-      maxAge: typeof cacheConfig.maxAge === 'number' ? cacheConfig.maxAge : 30,
-      maxSize: cacheConfig.maxSize || 3 * 1024 * 1024,
-      maxLength: cacheConfig.maxLength || 1000
-    });
   };
 
-  var prototypeAccessors$1 = { baseUrl: { configurable: true } };
+  var prototypeAccessors = { baseUrl: { configurable: true } };
 
-  prototypeAccessors$1.baseUrl.get = function () {
+  prototypeAccessors.baseUrl.get = function () {
     return this.config.url || ("https://" + (this.config.repository) + ".cdn.doclify.io/api/v2")
+  };
+
+  Client.prototype.setCache = function setCache (cache) {
+    this.cache = cache;
+  };
+
+  Client.prototype.setLang = function setLang (lang) {
+    this.config.lang = lang;
+  };
+
+  Client.prototype.getCacheKey = function getCacheKey (endpoint, params) {
+    var paramsArray = [];
+
+    Object.keys(params).sort().forEach(function (key) {
+      paramsArray.push((key + "=" + (params[key])));
+    });
+
+    return (endpoint + "?" + (paramsArray.join('&')))
   };
 
   Client.prototype.request = function request (endpoint, options, returnResponse) {
       var this$1 = this;
       if ( options === void 0 ) options = {};
       if ( returnResponse === void 0 ) returnResponse = false;
+
+    options.params = options.params || {};
+      
+    if (this.config.lang && !options.params.lang) {
+      options.params.lang = this.config.lang;
+    }
 
     return this.http.request(endpoint, options)
       .then(function (res) {
@@ -496,7 +341,7 @@
         var info = {
           url: this$1.baseUrl + '/' + endpoint,
           code: err.response ? err.response.status : -1,
-          params: options.params || {},
+          params: options.params,
           method: options.method || 'GET',
           error: responseData.error || null,
           data: responseData
@@ -512,36 +357,30 @@
       var this$1 = this;
       if ( options === void 0 ) options = {};
 
-    if (!this.config.cache) {
+    if (!this.cache) {
       return this.request(endpoint, options)
     }
 
-    var key = endpoint + ":" + (JSON.stringify(options.params));
+    var key = this.getCacheKey(endpoint, options.params || {});
 
-    var cached = this.cache.get(key);
+    var cache = this.cache.get(key);
 
-    if (cached instanceof Promise) {
+    if (cache instanceof Promise) {
       // the same request is being processed, so we wait for completion
-      return cached.then(function (res) { return cloneObject(res.data); })
-    } else if (cached instanceof Error) {
-      return Promise.reject(cached)
-    } else if (typeof cached !== 'undefined') {
-      return Promise.resolve(cloneObject(cached))
+      return cache.then(function (res) { return cloneObject(res.data); })
+    } else if (cache instanceof Error) {
+      return Promise.reject(cache)
+    } else if (typeof cache !== 'undefined') {
+      return Promise.resolve(cloneObject(cache))
     }
 
     var request = this.request(endpoint, options, true);
 
-    this.cache.set(key, request, {
-      size: 1
-    });
+    this.cache.set(key, request);
 
     return request
       .then(function (res) {
-        var size = Number(res.headers['content-length']) || 0;
-
-        this$1.cache.set(key, res.data, {
-          size: size
-        });
+        this$1.cache.set(key, res.data);
 
         // return copy of data
         return cloneObject(res.data)
@@ -556,7 +395,7 @@
     return new Documents(this)
   };
 
-  Object.defineProperties( Client.prototype, prototypeAccessors$1 );
+  Object.defineProperties( Client.prototype, prototypeAccessors );
 
   return Client;
 

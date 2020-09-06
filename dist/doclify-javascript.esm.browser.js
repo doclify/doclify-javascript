@@ -1,197 +1,15 @@
 /*!
-  * @doclify/javascript v2.0.12
+  * @doclify/javascript v3.0.0
   * (c) 2020 Doclify
   * @license MIT
   */
 import axios from 'axios';
 
-class Cache {
-  constructor (options) {
-    this.config = Object.assign({
-      maxSize: Infinity,
-      maxLength: Infinity,
-      maxAge: 0,
-      getSize () {
-        return 1
-      }
-    }, options || {});
-
-    this.entries = new Map();
-    this.size = 0;
-    this.newest = this.oldest = undefined;
-  }
-
-  reset () {
-    this.entries.clear();
-    this.size = 0;
-    this.newest = this.oldest = undefined;
-  }
-
-  get length () {
-    return this.entries.size
-  }
-
-  has (key) {
-    return this.entries.has(key)
-  }
-
-  get (key) {
-    const entry = this.entries.get(key);
-
-    if (!entry) {
-      return
-    }
-
-    if (entry.maxAge && Date.now() - entry.now > entry.maxAge * 1000) {
-      this.delete(entry);
-
-      return
-    }
-
-    return entry.value
-  }
-
-  set (key, value, options = {}) {
-    const maxAge = options.maxAge || this.config.maxAge;
-
-    if (maxAge && typeof maxAge !== 'number') {
-      throw new TypeError('maxAge must be a number')
-    }
-
-    const size = typeof options.size === 'number' ? options.size : this.config.getSize(value, key);
-
-    if (size > this.config.maxSize) {
-      if (this.has(key)) {
-        this.delete(key);
-      }
-
-      return false
-    }
-
-    let entry = this.entries.get(key);
-
-    if (!entry) {
-      entry = new Entry(key, value, size, maxAge);
-
-      this.entries.set(key, entry);
-
-      if (this.newest) {
-        this.newest.newer = entry;
-        entry.older = this.newest;
-      } else {
-        this.oldest = entry;
-      }
-    } else {
-      this.size -= entry.size;
-      entry.update(value, size, maxAge);
-
-      this.markEntryAsUsed(entry);
-    }
-
-    this.size += size;
-    this.newest = entry;
-
-    this.cleanup();
-
-    return true
-  }
-
-  markEntryAsUsed (entry) {
-    if (entry === this.newest) {
-      // Already the most recenlty used entry, so no need to update the list
-      return
-    }
-
-    // HEAD--------------TAIL
-    //   <.older   .newer>
-    //  <--- add direction --
-    //   A  B  C  <D>  E
-    if (entry.newer) {
-      if (entry === this.oldest) {
-        this.oldest = entry.newer;
-      }
-
-      entry.newer.older = entry.older; // C <-- E.
-    }
-    if (entry.older) {
-      entry.older.newer = entry.newer; // C. --> E
-    }
-    entry.newer = undefined; // D --x
-    entry.older = this.newest; // D. --> E
-
-    if (this.newest) {
-      this.newest.newer = entry; // E. <-- D
-    }
-
-    this.newest = entry;
-  }
-
-  delete (keyOrEntry) {
-    const entry = keyOrEntry instanceof Entry ? keyOrEntry : this.entries.get(keyOrEntry);
-
-    if (!entry) {
-      return false
-    }
-
-    this.size -= entry.size;
-    entry.size = 0;
-    entry.newer = entry.older = undefined;
-
-    return this.entries.delete(entry.key)
-  }
-
-  cleanup () {
-    while (this.length > this.config.maxLength || this.size > this.config.maxSize) {
-      if (!this.shift()) {
-        break
-      }
-    }
-  }
-
-  shift () {
-    const entry = this.oldest;
-
-    if (!entry) {
-      return false
-    }
-
-    if (this.oldest.newer) {
-      // advance the list
-      this.oldest = this.oldest.newer;
-      this.oldest.older = undefined;
-    } else {
-      // the cache is exhausted
-      this.oldest = undefined;
-      this.newest = undefined;
-    }
-
-    this.delete(entry);
-
-    return true
-  }
-}
-
-class Entry {
-  constructor (key, value, size, maxAge) {
-    this.key = key;
-    this.newer = this.older = null;
-
-    this.update(value, size, maxAge);
-  }
-
-  update (value, size, maxAge) {
-    this.value = value;
-    this.size = size;
-    this.maxAge = maxAge;
-    this.now = maxAge ? Date.now() : null;
-  }
-}
-
 class Documents {
   constructor (client) {
     this.client = client;
 
-    this.lang = undefined;
+    this.langCode = client.config.lang;
     this.q = [];
     this.includeQuery = [];
     this.selectQuery = [];
@@ -274,6 +92,12 @@ class Documents {
     return this
   }
 
+  lang(lang) {
+    this.langCode = lang;
+
+    return this
+  }
+
   // deprecated
   with (field) {
     return this.include(field)
@@ -311,7 +135,7 @@ class Documents {
       include: this.includeQuery.length ? JSON.stringify(this.includeQuery) : undefined,
       order: this.orderQuery.length ? JSON.stringify(this.orderQuery) : undefined,
       select: this.selectQuery.length ? JSON.stringify(this.selectQuery) : undefined,
-      lang: this.lang
+      lang: this.langCode
     }, params)
   }
 
@@ -402,7 +226,7 @@ function cloneObject(obj) {
 }
 
 class Client {
-  constructor (options) {
+  constructor (options = {}) {
     if (!options.url) {
       if (!options.repository) {
         throw new TypeError('Repository or URL option is required.')
@@ -415,11 +239,16 @@ class Client {
 
     options.token = options.token || options.key || null;
 
+    if (options.cache) {
+      this.setCache(options.cache);
+      delete options.cache;
+    }
+
     this.config = Object.assign({
       url: null,
       repository: null,
       token: null,
-      cache: false,
+      lang: null,
       timeout: 10000
     }, options);
 
@@ -440,21 +269,37 @@ class Client {
     }, function (err) {
       return Promise.reject(err)
     });
-
-    const cacheConfig = typeof this.config.cache === 'object' && this.config.cache ? this.config.cache : {};
-
-    this.cache = new Cache({
-      maxAge: typeof cacheConfig.maxAge === 'number' ? cacheConfig.maxAge : 30,
-      maxSize: cacheConfig.maxSize || 3 * 1024 * 1024,
-      maxLength: cacheConfig.maxLength || 1000
-    });
   }
 
   get baseUrl () {
     return this.config.url || `https://${this.config.repository}.cdn.doclify.io/api/v2`
   }
 
+  setCache(cache) {
+    this.cache = cache;
+  }
+
+  setLang(lang) {
+    this.config.lang = lang;
+  }
+
+  getCacheKey(endpoint, params) {
+    const paramsArray = [];
+
+    Object.keys(params).sort().forEach(key => {
+      paramsArray.push(`${key}=${params[key]}`);
+    });
+
+    return `${endpoint}?${paramsArray.join('&')}`
+  }
+
   request (endpoint, options = {}, returnResponse = false) {
+    options.params = options.params || {};
+    
+    if (this.config.lang && !options.params.lang) {
+      options.params.lang = this.config.lang;
+    }
+
     return this.http.request(endpoint, options)
       .then(res => {
         return returnResponse ? res : res.data
@@ -465,7 +310,7 @@ class Client {
         const info = {
           url: this.baseUrl + '/' + endpoint,
           code: err.response ? err.response.status : -1,
-          params: options.params || {},
+          params: options.params,
           method: options.method || 'GET',
           error: responseData.error || null,
           data: responseData
@@ -478,36 +323,30 @@ class Client {
   }
 
   cachedRequest (endpoint, options = {}) {
-    if (!this.config.cache) {
+    if (!this.cache) {
       return this.request(endpoint, options)
     }
 
-    const key = `${endpoint}:${JSON.stringify(options.params)}`;
+    const key = this.getCacheKey(endpoint, options.params || {});
 
-    const cached = this.cache.get(key);
+    const cache = this.cache.get(key);
 
-    if (cached instanceof Promise) {
+    if (cache instanceof Promise) {
       // the same request is being processed, so we wait for completion
-      return cached.then(res => cloneObject(res.data))
-    } else if (cached instanceof Error) {
-      return Promise.reject(cached)
-    } else if (typeof cached !== 'undefined') {
-      return Promise.resolve(cloneObject(cached))
+      return cache.then(res => cloneObject(res.data))
+    } else if (cache instanceof Error) {
+      return Promise.reject(cache)
+    } else if (typeof cache !== 'undefined') {
+      return Promise.resolve(cloneObject(cache))
     }
 
     const request = this.request(endpoint, options, true);
 
-    this.cache.set(key, request, {
-      size: 1
-    });
+    this.cache.set(key, request);
 
     return request
       .then(res => {
-        const size = Number(res.headers['content-length']) || 0;
-
-        this.cache.set(key, res.data, {
-          size
-        });
+        this.cache.set(key, res.data);
 
         // return copy of data
         return cloneObject(res.data)
