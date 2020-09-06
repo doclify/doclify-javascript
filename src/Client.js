@@ -69,7 +69,11 @@ export default class Client {
     const paramsArray = []
 
     Object.keys(params).sort().forEach(key => {
-      paramsArray.push(`${key}=${params[key]}`)
+      const value = params[key]
+
+      if (value !== null && value !== undefined) {
+        paramsArray.push(`${key}=${value}`)
+      }
     })
 
     return `${endpoint}?${paramsArray.join('&')}`
