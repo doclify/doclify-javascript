@@ -1,5 +1,5 @@
 /*!
-  * @doclify/javascript v3.0.3
+  * @doclify/javascript v3.0.4
   * (c) 2020 Doclify
   * @license MIT
   */
@@ -464,7 +464,11 @@ class Client {
     const paramsArray = [];
 
     Object.keys(params).sort().forEach(key => {
-      paramsArray.push(`${key}=${params[key]}`);
+      const value = params[key];
+
+      if (value !== null && value !== undefined) {
+        paramsArray.push(`${key}=${value}`);
+      }
     });
 
     return `${endpoint}?${paramsArray.join('&')}`

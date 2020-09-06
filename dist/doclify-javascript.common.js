@@ -1,5 +1,5 @@
 /*!
-  * @doclify/javascript v3.0.3
+  * @doclify/javascript v3.0.4
   * (c) 2020 Doclify
   * @license MIT
   */
@@ -518,7 +518,11 @@ Client.prototype.getCacheKey = function getCacheKey (endpoint, params) {
   var paramsArray = [];
 
   Object.keys(params).sort().forEach(function (key) {
-    paramsArray.push((key + "=" + (params[key])));
+    var value = params[key];
+
+    if (value !== null && value !== undefined) {
+      paramsArray.push((key + "=" + value));
+    }
   });
 
   return (endpoint + "?" + (paramsArray.join('&')))
