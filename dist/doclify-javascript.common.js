@@ -1,11 +1,9 @@
 /*!
-  * @doclify/javascript v3.0.2
+  * @doclify/javascript v3.0.3
   * (c) 2020 Doclify
   * @license MIT
   */
 'use strict';
-
-Object.defineProperty(exports, '__esModule', { value: true });
 
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
@@ -603,5 +601,6 @@ Client.prototype.documents = function documents () {
 
 Object.defineProperties( Client.prototype, prototypeAccessors );
 
-exports.default = Client;
-exports.dom = dom;
+Client.dom = dom;
+
+module.exports = Client;

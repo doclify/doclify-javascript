@@ -1,5 +1,5 @@
 /*!
-  * @doclify/javascript v3.0.2
+  * @doclify/javascript v3.0.3
   * (c) 2020 Doclify
   * @license MIT
   */
@@ -539,5 +539,6 @@ class Client {
   }
 }
 
+Client.dom = dom;
+
 export default Client;
-export { dom };

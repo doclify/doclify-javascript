@@ -1,5 +1,5 @@
 /*!
-  * @doclify/javascript v3.0.2
+  * @doclify/javascript v3.0.3
   * (c) 2020 Doclify
   * @license MIT
   */
@@ -597,5 +597,6 @@ Client.prototype.documents = function documents () {
 
 Object.defineProperties( Client.prototype, prototypeAccessors );
 
+Client.dom = dom;
+
 export default Client;
-export { dom };

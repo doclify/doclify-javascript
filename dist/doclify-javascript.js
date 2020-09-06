@@ -1,13 +1,13 @@
 /*!
-  * @doclify/javascript v3.0.2
+  * @doclify/javascript v3.0.3
   * (c) 2020 Doclify
   * @license MIT
   */
 (function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('axios')) :
-  typeof define === 'function' && define.amd ? define(['exports', 'axios'], factory) :
-  (global = global || self, factory(global.DoclifyJS = {}, global.axios));
-}(this, (function (exports, axios) { 'use strict';
+  typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('axios')) :
+  typeof define === 'function' && define.amd ? define(['axios'], factory) :
+  (global = global || self, global.DoclifyJS = factory(global.axios));
+}(this, (function (axios) { 'use strict';
 
   axios = axios && Object.prototype.hasOwnProperty.call(axios, 'default') ? axios['default'] : axios;
 
@@ -603,9 +603,8 @@
 
   Object.defineProperties( Client.prototype, prototypeAccessors );
 
-  exports.default = Client;
-  exports.dom = dom;
+  Client.dom = dom;
 
-  Object.defineProperty(exports, '__esModule', { value: true });
+  return Client;
 
 })));
