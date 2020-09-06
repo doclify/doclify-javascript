@@ -98,6 +98,7 @@ class Serializer {
 		}
 
 		if (!serializer) {
+			// eslint-disable-next-line no-console, no-undef
 			console.warn(`[@doclify/javascript] Invalid structuredText type '${obj.type}', please try upgrading @doclify/javascript.`)
 
 			return ''
