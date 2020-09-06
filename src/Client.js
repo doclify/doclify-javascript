@@ -143,3 +143,5 @@ export default class Client {
     return new Documents(this)
   }
 }
+
+Client.dom = dom
