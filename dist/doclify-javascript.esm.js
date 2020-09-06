@@ -1,5 +1,5 @@
 /*!
-  * @doclify/javascript v3.0.0
+  * @doclify/javascript v3.0.1
   * (c) 2020 Doclify
   * @license MIT
   */
