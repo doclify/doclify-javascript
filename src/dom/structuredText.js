@@ -31,6 +31,10 @@ const serializers = {
 				} else if (type === 'link') {
 					const target = attrs.target ? ` target="${attrs.target}" rel="noopener"` : ''
 					html = `<a href="${attrs.href}"${target}>${html}</a>`
+				} else if (type === 'superscript') {
+					html = `<sup>${html}</sup>`
+				} else if (type === 'subscript') {
+					html = `<sub>${html}</sub>`
 				}
 			})
 
