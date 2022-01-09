@@ -1,6 +1,6 @@
 /*!
-  * @doclify/javascript v3.0.4
-  * (c) 2020 Doclify
+  * @doclify/javascript v3.0.5
+  * (c) 2022 Doclify
   * @license MIT
   */
 import axios from 'axios';
@@ -338,6 +338,10 @@ var serializers = {
 				} else if (type === 'link') {
 					var target = attrs.target ? (" target=\"" + (attrs.target) + "\" rel=\"noopener\"") : '';
 					html = "<a href=\"" + (attrs.href) + "\"" + target + ">" + html + "</a>";
+				} else if (type === 'superscript') {
+					html = "<sup>" + html + "</sup>";
+				} else if (type === 'subscript') {
+					html = "<sub>" + html + "</sub>";
 				}
 			});
 
