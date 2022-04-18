@@ -52,7 +52,7 @@ export default class Doclify {
 
     this.httpClient.interceptors.response.use(
       (response) => response,
-      (error: AxiosError) => () => {
+      (error: AxiosError) => {
         return Promise.reject(DoclifyException.fromAxiosError(error))
       }
     )
