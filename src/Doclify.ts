@@ -63,19 +63,21 @@ export default class Doclify {
       options.params.lang = this.options.language
     }
 
-    const url = new URL(this.baseUrl + '/' + endpoint)
+    const searchParams = new URLSearchParams()
     for (const key in options.params) {
       if (options.params[key]) {
-        url.searchParams.append(key, String(options.params[key]))
+        searchParams.append(key, String(options.params[key]))
       }
     }
 
     delete options.params
 
+    const query = searchParams.toString()
+
     let response: Response
 
     try {
-      response = await this.fetch(url.toString(), options)
+      response = await this.fetch(this.baseUrl + '/' + endpoint + (query ? '?' + query : ''), options)
     } catch (err) {
       throw new DoclifyException('Networking issue: ' + (err as Error).message, 500)
     }
