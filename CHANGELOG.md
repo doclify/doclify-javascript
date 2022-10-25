@@ -1,3 +1,12 @@
+# [5.0.0](https://github.com/doclify/doclify-javascript/compare/v4.1.0...v5.0.0) (2022-10-25)
+
+
+### Features
+
+* add table schema ([fb574ee](https://github.com/doclify/doclify-javascript/commit/fb574eef5bce3a83a34c951d796bfd5e7b7c75d4))
+* rename release ([709daf7](https://github.com/doclify/doclify-javascript/commit/709daf7e6eef0d5963ca185bac6f046fb97e1e7c))
+* use fetch for requests ([b473d82](https://github.com/doclify/doclify-javascript/commit/b473d8266b611debceb7cba290e0217642ddf4d6))
+
 # [4.1.0](https://github.com/doclify/doclify-javascript/compare/v4.0.0...v4.1.0) (2022-10-25)
 
 
