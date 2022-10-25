@@ -1,3 +1,10 @@
+# [4.1.0](https://github.com/doclify/doclify-javascript/compare/v4.0.0...v4.1.0) (2022-10-25)
+
+
+### Features
+
+* update axios ([faa4953](https://github.com/doclify/doclify-javascript/commit/faa49537047a3f9a4db094fdf68cd74ad8cb9cab))
+
 # [4.0.0](https://github.com/doclify/doclify-javascript/compare/v3.0.6...v4.0.0) (2022-04-18)
 
 
