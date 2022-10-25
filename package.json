@@ -45,7 +45,7 @@
     "test": "run-s build lint test:unit",
     "test:unit": "jest",
     "commit": "git-cz",
-    "release": "dotenv release-it --",
+    "release": "release-it",
     "prepare": "siroc build"
   },
   "lint-staged": {
