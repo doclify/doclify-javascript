@@ -1,9 +1,4 @@
-// Module dependencies & types
-import axios, {
-  AxiosError,
-  AxiosInstance
-} from "axios";
-import defu from "defu";
+import defu from "defu"
 
 import { DoclifyException } from './exceptions'
 import Documents from './Documents'
@@ -22,10 +17,10 @@ const defaults: DoclifyDefaultOptions = {
 
 export default class Doclify {
   public options: DoclifyDefaultOptions
-  public httpClient: AxiosInstance
   public dom = DOM
+  private fetch: typeof fetch
 
-  constructor(options?: DoclifyOptions) {
+  constructor(options: DoclifyOptions = {}) {
     this.options = defu((options as DoclifyDefaultOptions) || {}, defaults)
 
     if (!this.options.url) {
@@ -38,44 +33,60 @@ export default class Doclify {
       }
     }
 
-    const headers: Record<string, string> = {}
-
-    if (this.options.key) {
-      headers.Authorization = 'Bearer ' + this.options.key
+    if (typeof options.fetch === "function") {
+      this.fetch = options.fetch;
+    } else if (typeof globalThis.fetch === "function") {
+      this.fetch = globalThis.fetch
+    } else {
+      throw new DoclifyException(
+        "A valid fetch implementation was not provided. In environments where fetch is not available (including Node.js), a fetch implementation must be provided via a polyfill or the `fetch` option.",
+      )
     }
-
-    this.httpClient = axios.create({
-      baseURL: this.baseUrl,
-      timeout: this.options.timeout,
-      headers,
-    })
-
-    this.httpClient.interceptors.response.use(
-      (response) => response,
-      (error: AxiosError) => {
-        return Promise.reject(DoclifyException.fromAxiosError(error))
-      }
-    )
   }
 
   public get baseUrl(): string {
     return this.options.url || `https://${this.options.repository ?? ''}.cdn.doclify.io/api/v2`
   }
 
-  public async request<T = any>(
+  public async request(
     endpoint: string,
     options: Record<string, any> = {}
   ): Promise<any> {
-    options.url = endpoint
+    options.headers = options.headers || {}
     options.params = options.params || {}
+
+    if (this.options.key) {
+      options.headers.Authorization = 'Bearer ' + this.options.key
+    }
 
     if (this.options.language && !options.params.lang) {
       options.params.lang = this.options.language
     }
 
-    const response = await this.httpClient.request<T>(options)
+    const url = new URL(this.baseUrl + '/' + endpoint)
+    for (const key in options.params) {
+      if (options.params[key]) {
+        url.searchParams.append(key, String(options.params[key]))
+      }
+    }
 
-    return response.data
+    delete options.params
+
+    let response: Response
+
+    try {
+      response = await this.fetch(url.toString(), options)
+    } catch (err) {
+      throw new DoclifyException('Networking issue: ' + (err as Error).message, 500)
+    }
+
+    const json = await response.json()
+
+    if (!response.ok) {
+      throw DoclifyException.fromResponse(response, json)
+    }
+
+    return json
   }
 
   public documents(): Documents {

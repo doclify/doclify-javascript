@@ -1,5 +1,3 @@
-import { AxiosError } from 'axios'
-
 export class DoclifyException extends Error {
   public isDoclify: boolean
   public status: number
@@ -56,9 +54,7 @@ export class DoclifyException extends Error {
     return new DoclifyException(json.message as string, json.status as number, json.data)
   }
 
-  static fromAxiosError(error: AxiosError): DoclifyException {
-    const { message, response } = error
-
-    return new DoclifyException(message, response?.status, response?.data)
+  static fromResponse(response: Response, data: any): DoclifyException {
+    return new DoclifyException('Invalid request.', response.status, data)
   }
 }

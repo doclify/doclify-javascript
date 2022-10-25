@@ -4,6 +4,7 @@ export interface DoclifyOptions {
   key?: string
   timeout?: number
   language?: string
+  fetch?: any
 }
 
 export interface DoclifyDefaultOptions {
