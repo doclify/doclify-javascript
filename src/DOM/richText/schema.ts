@@ -76,6 +76,29 @@ const schema = {
       return {
         tag: 'p'
       }
+    },
+
+    // tables
+    table() {
+      return {
+        tag: [
+          'table',
+          'tbody',
+        ]
+      }
+    },
+    table_row() {
+      return { tag: 'tr' }
+    },
+    table_header(node: any) {
+      return {
+        tag: [{ tag: 'th', attrs: node.attrs }]
+      }
+    },
+    table_cell(node: any) {
+      return {
+        tag: [{ tag: 'td', attrs: node.attrs }]
+      }
     }
   },
   marks: {
