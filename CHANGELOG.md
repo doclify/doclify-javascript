@@ -1,3 +1,10 @@
+## [5.0.1](https://github.com/doclify/doclify-javascript/compare/v5.0.0...v5.0.1) (2022-10-25)
+
+
+### Bug Fixes
+
+* url construction ([504879f](https://github.com/doclify/doclify-javascript/commit/504879fff26c326c87882d878347e063cc9705bc))
+
 # [5.0.0](https://github.com/doclify/doclify-javascript/compare/v4.1.0...v5.0.0) (2022-10-25)
 
 
