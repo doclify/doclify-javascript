@@ -1,3 +1,10 @@
+## [5.0.2](https://github.com/doclify/doclify-javascript/compare/v5.0.1...v5.0.2) (2022-11-02)
+
+
+### Bug Fixes
+
+* fetch ([49cbf7b](https://github.com/doclify/doclify-javascript/commit/49cbf7b2fd44cae677fa125f20119ceb801dc0f0))
+
 ## [5.0.1](https://github.com/doclify/doclify-javascript/compare/v5.0.0...v5.0.1) (2022-10-25)
 
 
