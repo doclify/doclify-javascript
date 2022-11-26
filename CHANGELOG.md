@@ -1,3 +1,10 @@
+## [5.0.3](https://github.com/doclify/doclify-javascript/compare/v5.0.2...v5.0.3) (2022-11-26)
+
+
+### Bug Fixes
+
+* schema ([89d5553](https://github.com/doclify/doclify-javascript/commit/89d5553a8a7122d58cc32117fd46530f0b06ce9e))
+
 ## [5.0.2](https://github.com/doclify/doclify-javascript/compare/v5.0.1...v5.0.2) (2022-11-02)
 
 
