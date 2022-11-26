@@ -58,7 +58,10 @@ const schema = {
       return {
         singleTag: [{
           tag: 'img',
-          attrs: pick(node.attrs as Record<string, unknown>, ['src', 'alt', 'title'])
+          attrs: {
+            src: node.attrs.url,
+            alt: node.attrs.name
+          }
         }]
       }
     },
