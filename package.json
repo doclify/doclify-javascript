@@ -1,6 +1,6 @@
 {
   "name": "@doclify/javascript",
-  "version": "5.0.5-beta.0",
+  "version": "5.0.5",
   "description": "📦 Javascript SDK for Doclify API",
   "keywords": [
     "doclify",
