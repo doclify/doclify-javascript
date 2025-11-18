@@ -1,13 +1,14 @@
-import Doclify from "./Doclify";
-import * as DOM from './DOM'
+import Doclify from './Doclify.js'
+import * as DOM from './DOM/index.js'
 
 export type {
   DoclifyDefaultOptions,
   DoclifyOptions,
-} from "./types";
+} from './types.js'
 
 export {
-  DOM
+  DOM,
+  Doclify,
 }
 
-export default Doclify;
+export default Doclify

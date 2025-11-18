@@ -1,10 +1,10 @@
-import { escapeHTML } from '../../utils'
-import defaultSchema from './schema'
+import { escapeHTML } from '../../utils.js'
+import defaultSchema from './schema.js'
 
 type NodeSerializer = (node: any) => any
 type MarkSerializer = (node: any) => any
 
-type Schema = {
+interface Schema {
   nodes: Record<string, NodeSerializer>
   marks: Record<string, MarkSerializer>
 }
@@ -81,13 +81,15 @@ export default class HTMLSerializer {
     }
 
     if (item.marks) {
-      item.marks.slice(0).reverse().forEach((m: any) => {
-        const mark = this.getMatchingMark(m)
+      item.marks.slice(0)
+        .reverse()
+        .forEach((m: any) => {
+          const mark = this.getMatchingMark(m)
 
-        if (mark) {
-          html.push(this.renderClosingTag(mark.tag))
-        }
-      })
+          if (mark) {
+            html.push(this.renderClosingTag(mark.tag))
+          }
+        })
     }
 
     return html.join('')
@@ -127,13 +129,15 @@ export default class HTMLSerializer {
       return `</${tags as string}>`
     }
 
-    const all = tags.slice(0).reverse().map((tag: any) => {
-      if (tag.constructor === String) {
-        return `</${tag as string}>`
-      } else {
-        return `</${tag.tag as string}>`
-      }
-    })
+    const all = tags.slice(0)
+      .reverse()
+      .map((tag: any) => {
+        if (tag.constructor === String) {
+          return `</${tag as string}>`
+        } else {
+          return `</${tag.tag as string}>`
+        }
+      })
 
     return all.join('')
   }

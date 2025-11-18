@@ -1,5 +1,5 @@
-import * as richText from './richText'
+import * as richText from './richText/index.js'
 
 export {
-  richText
+  richText,
 }

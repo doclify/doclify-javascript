@@ -1,5 +1,5 @@
-import Doclify from './Doclify'
-import { DoclifyException } from './exceptions'
+import type Doclify from './Doclify.js'
+import { DoclifyException } from './exceptions.js'
 
 type Operator = 'eq' | 'not' | 'in' | 'nin' | 'gt' | 'gte' | 'lt' | 'lte' | 'fulltext' | 'match'
 type QueryValue = string | number | boolean
@@ -22,111 +22,111 @@ export default class Documents {
     }
   }
 
-  public where(field: string, operator: Operator, value: QueryValue | QueryValue[]): this {
+  where(field: string, operator: Operator, value: QueryValue | QueryValue[]): this {
     this.q.push([field, operator, value])
 
     return this
   }
 
-  public collection(value: string): this {
+  collection(value: string): this {
     return this.eq('sys.collection', value)
   }
 
-  public contentType(value: string): this {
+  contentType(value: string): this {
     return this.eq('sys.contentType', value)
   }
 
-  public id(value: string): this {
+  id(value: string): this {
     return this.eq('sys.id', value)
   }
 
-  public uid(value: string): this {
+  uid(value: string): this {
     return this.eq('sys.uid', value)
   }
 
-  public eq(field: string, value: QueryValue): this {
+  eq(field: string, value: QueryValue): this {
     return this.where(field, 'eq', value)
   }
 
-  public not(field: string, value: QueryValue): this {
+  not(field: string, value: QueryValue): this {
     return this.where(field, 'not', value)
   }
 
-  public in(field: string, value: QueryValue[]): this {
+  in(field: string, value: QueryValue[]): this {
     return this.where(field, 'in', value)
   }
 
-  public nin(field: string, value: QueryValue[]): this {
+  nin(field: string, value: QueryValue[]): this {
     return this.where(field, 'nin', value)
   }
 
-  public gt(field: string, value: number): this {
+  gt(field: string, value: number): this {
     return this.where(field, 'gt', value)
   }
 
-  public gte(field: string, value: number): this {
+  gte(field: string, value: number): this {
     return this.where(field, 'gte', value)
   }
 
-  public lt(field: string, value: number): this {
+  lt(field: string, value: number): this {
     return this.where(field, 'lt', value)
   }
 
-  public lte(field: string, value: number): this {
+  lte(field: string, value: number): this {
     return this.where(field, 'lte', value)
   }
 
-  public fulltext(field: string, value: string): this {
+  fulltext(field: string, value: string): this {
     return this.where(field, 'fulltext', value)
   }
 
-  public match(field: string, value: string): this {
+  match(field: string, value: string): this {
     return this.where(field, 'match', value)
   }
 
-  public query(query: (query: Documents) => void): this {
+  query(query: (query: Documents) => void): this {
     query(this)
 
     return this
   }
 
-  public language(lang: string): this {
+  language(lang: string): this {
     this._lang = lang
 
     return this
   }
 
-  public limit(limit: number): this {
+  limit(limit: number): this {
     this._limit = limit
 
     return this
   }
 
-  public offset(offset: number): this {
+  offset(offset: number): this {
     this._offset = offset
 
     return this
   }
 
-  public include(fields: string[]): this {
+  include(fields: string[]): this {
     this._include.push(...fields)
 
     return this
   }
 
-  public select(fields: string[]): this {
+  select(fields: string[]): this {
     this._select.push(...fields)
 
     return this
   }
 
-  public orderBy(field: string, asc: 'asc' | 'desc' = 'asc'): this {
+  orderBy(field: string, asc: 'asc' | 'desc' = 'asc'): this {
     this._order.push([field, asc])
 
     return this
   }
 
-  public getParams(params = {}): Record<string, any> {
+  getParams(params = {}): Record<string, any> {
     return Object.assign(
       {
         q: JSON.stringify(this.q),
@@ -137,17 +137,17 @@ export default class Documents {
         limit: this._limit,
         offset: this._offset,
       },
-      params
+      params,
     )
   }
 
-  public fetch(): Promise<any> {
+  fetch(): Promise<any> {
     return this.client.request('documents/search', {
       params: this.getParams(),
     })
   }
 
-  public paginate(page: number, perPage: number): Promise<any> {
+  paginate(page: number, perPage: number): Promise<any> {
     return this.client.request('documents/paginated', {
       params: this.getParams({
         perPage,
@@ -156,7 +156,7 @@ export default class Documents {
     })
   }
 
-  public async first(): Promise<any> {
+  async first(): Promise<any> {
     const results = await this.client.request('documents/search', {
       params: this.getParams({
         limit: 1,
@@ -166,7 +166,7 @@ export default class Documents {
     return results.length ? results[0] : null
   }
 
-  public async firstOrFail(): Promise<any> {
+  async firstOrFail(): Promise<any> {
     const results = await this.client.request('documents/search', {
       params: this.getParams({
         limit: 1,
@@ -180,7 +180,8 @@ export default class Documents {
     return results[0]
   }
 
-  public then(resolve: (value: any) => any, reject?: (value: any) => any): any {
-    return this.fetch().then(resolve, reject)
+  then(resolve: (value: any) => any, reject?: (value: any) => any): any {
+    return this.fetch()
+      .then(resolve, reject)
   }
 }

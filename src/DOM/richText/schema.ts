@@ -1,4 +1,4 @@
-const pick = function(attrs: Record<string, unknown>, allowed: string[]) {
+const pick = function (attrs: Record<string, unknown>, allowed: string[]) {
   if (!attrs) {
     return null
   }
@@ -6,7 +6,7 @@ const pick = function(attrs: Record<string, unknown>, allowed: string[]) {
   const h: Record<string, unknown> = {}
   for (const key in attrs) {
     const value = attrs[key]
-    if (allowed.indexOf(key) > -1 && value !== null) {
+    if (allowed.includes(key) && value !== null) {
       h[key] = value
     }
   }
@@ -20,17 +20,17 @@ const schema = {
   nodes: {
     horizontal_rule() {
       return {
-        singleTag: 'hr'
+        singleTag: 'hr',
       }
     },
     blockquote() {
       return {
-        tag: 'blockquote'
+        tag: 'blockquote',
       }
     },
     bullet_list() {
       return {
-        tag: 'ul'
+        tag: 'ul',
       }
     },
     code_block(node: any) {
@@ -39,45 +39,47 @@ const schema = {
           'pre',
           {
             tag: 'code',
-            attrs: node.attrs
-          }
-        ]
+            attrs: node.attrs,
+          },
+        ],
       }
     },
     hard_break() {
       return {
-        singleTag: 'br'
+        singleTag: 'br',
       }
     },
     heading(node: any) {
       return {
-        tag: `h${node.attrs.level as string}`
+        tag: `h${node.attrs.level as string}`,
       }
     },
     image(node: any) {
       return {
-        singleTag: [{
-          tag: 'img',
-          attrs: {
-            src: node.attrs.url,
-            alt: node.attrs.name
-          }
-        }]
+        singleTag: [
+          {
+            tag: 'img',
+            attrs: {
+              src: node.attrs.url,
+              alt: node.attrs.name,
+            },
+          },
+        ],
       }
     },
     list_item() {
       return {
-        tag: 'li'
+        tag: 'li',
       }
     },
     ordered_list() {
       return {
-        tag: 'ol'
+        tag: 'ol',
       }
     },
     paragraph() {
       return {
-        tag: 'p'
+        tag: 'p',
       }
     },
 
@@ -87,7 +89,7 @@ const schema = {
         tag: [
           'table',
           'tbody',
-        ]
+        ],
       }
     },
     table_row() {
@@ -95,44 +97,44 @@ const schema = {
     },
     table_header(node: any) {
       return {
-        tag: [{ tag: 'th', attrs: node.attrs }]
+        tag: [{ tag: 'th', attrs: node.attrs }],
       }
     },
     table_cell(node: any) {
       return {
-        tag: [{ tag: 'td', attrs: node.attrs }]
+        tag: [{ tag: 'td', attrs: node.attrs }],
       }
-    }
+    },
   },
   marks: {
     bold() {
       return {
-        tag: 'b'
+        tag: 'b',
       }
     },
     strike() {
       return {
-        tag: 'strike'
+        tag: 'strike',
       }
     },
     underline() {
       return {
-        tag: 'u'
+        tag: 'u',
       }
     },
     strong() {
       return {
-        tag: 'strong'
+        tag: 'strong',
       }
     },
     code() {
       return {
-        tag: 'code'
+        tag: 'code',
       }
     },
     italic() {
       return {
-        tag: 'i'
+        tag: 'i',
       }
     },
     link(node: any) {
@@ -151,21 +153,25 @@ const schema = {
       }
 
       return {
-        tag: [{
-          tag: 'a',
-          attrs: attrs
-        }]
+        tag: [
+          {
+            tag: 'a',
+            attrs,
+          },
+        ],
       }
     },
     styled(node: any) {
       return {
-        tag: [{
-          tag: 'span',
-          attrs: node.attrs
-        }]
+        tag: [
+          {
+            tag: 'span',
+            attrs: node.attrs,
+          },
+        ],
       }
-    }
-  }
+    },
+  },
 }
 
 export default schema

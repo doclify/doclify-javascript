@@ -1,4 +1,4 @@
-import HTMLSerializer from './HTMLSerializer'
+import HTMLSerializer from './HTMLSerializer.js'
 
 const defaultSerializer = new HTMLSerializer()
 const asHTML = (doc: any) => {
@@ -8,5 +8,5 @@ const asHTML = (doc: any) => {
 export {
   HTMLSerializer,
   defaultSerializer,
-  asHTML
+  asHTML,
 }

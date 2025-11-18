@@ -1,7 +1,7 @@
 export class DoclifyException extends Error {
-  public isDoclify: boolean
-  public status: number
-  public data: any
+  isDoclify: boolean
+  status: number
+  data: any
 
   constructor(message: string, status?: number, data?: any) {
     if (typeof status === 'undefined') {
@@ -25,19 +25,19 @@ export class DoclifyException extends Error {
     Object.setPrototypeOf(this, new.target.prototype)
   }
 
-  public get isValidationError(): boolean {
+  get isValidationError(): boolean {
     return Array.isArray(this.data?.errors)
   }
 
-  public get validationErrors(): any[] {
+  get validationErrors(): any[] {
     return this.data?.errors ?? []
   }
 
-  public get statusCode(): number {
+  get statusCode(): number {
     return this.status
   }
 
-  public get code(): string | undefined {
+  get code(): string | undefined {
     return this.data?.error?.code
   }
 

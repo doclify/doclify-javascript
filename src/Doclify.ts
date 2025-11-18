@@ -1,23 +1,22 @@
-import defu from "defu"
+import defu from 'defu'
 
-import { DoclifyException } from './exceptions'
-import Documents from './Documents'
-import * as DOM from './DOM'
-
+import { DoclifyException } from './exceptions.js'
+import Documents from './Documents.js'
+import * as DOM from './DOM/index.js'
 
 // Load custom types
 import type {
   DoclifyDefaultOptions,
   DoclifyOptions,
-} from "./types";
+} from './types.js'
 
 const defaults: DoclifyDefaultOptions = {
   timeout: 5000,
-};
+}
 
 export default class Doclify {
-  public options: DoclifyDefaultOptions
-  public dom = DOM
+  options: DoclifyDefaultOptions
+  dom = DOM
   private fetch: typeof fetch
 
   constructor(options: DoclifyOptions = {}) {
@@ -33,13 +32,13 @@ export default class Doclify {
       }
     }
 
-    if (typeof options.fetch === "function") {
-      this.fetch = options.fetch;
-    } else if (typeof globalThis.fetch === "function") {
+    if (typeof options.fetch === 'function') {
+      this.fetch = options.fetch
+    } else if (typeof globalThis.fetch === 'function') {
       this.fetch = globalThis.fetch
     } else {
       throw new DoclifyException(
-        "A valid fetch implementation was not provided. In environments where fetch is not available (including Node.js), a fetch implementation must be provided via a polyfill or the `fetch` option.",
+        'A valid fetch implementation was not provided. In environments where fetch is not available (including Node.js), a fetch implementation must be provided via a polyfill or the `fetch` option.',
       )
     }
 
@@ -48,13 +47,13 @@ export default class Doclify {
     }
   }
 
-  public get baseUrl(): string {
+  get baseUrl(): string {
     return this.options.url || `https://${this.options.repository ?? ''}.cdn.doclify.io/api/v2`
   }
 
-  public async request(
+  async request(
     endpoint: string,
-    options: Record<string, any> = {}
+    options: Record<string, any> = {},
   ): Promise<any> {
     options.headers = options.headers || {}
     options.params = options.params || {}
@@ -95,7 +94,7 @@ export default class Doclify {
     return json
   }
 
-  public documents(): Documents {
+  documents(): Documents {
     return new Documents(this)
   }
 }
